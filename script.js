@@ -11,41 +11,72 @@ const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 let map, mapEvent;
-//!Navigating to user's current location and logging it
-if (navigator.geolocation) {
-  navigator.geolocation.getCurrentPosition(
-    function (position) {
-      console.log(position);
-      const { latitude } = position.coords;
-      const { longitude } = position.coords;
-      //   console.log(`https://www.google.com/maps/@${latitude},${longitude},15z`);
 
-      map = L.map('map').setView([latitude, longitude], 13);
+class App {
+  #map;
+  #mapEvent;
+  constructor() {
+    this._getPosition();
+    //! Form input validation
+    //! Form submission
+    form.addEventListener('submit', this._newWorkout.bind(this));
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(map);
+    //! Toggle elevation/cadence input fields based on workout type
+    inputType.addEventListener('change', this._toggleElevationField.bind(this));
+  }
 
-      //! Add Marker on click
-      map.on('click', function (mapE) {
-        mapEvent = mapE;
+  _getPosition() {
+    //!Navigating to user's current location and logging it
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        this._loadMap.bind(this),
+        function () {
+          alert(
+            'Could not get your position. Please allow location access in your browser settings.'
+          );
+        },
+        {}
+      );
+    }
+  }
+
+  _loadMap(position) {
+
+    console.log(position);
+    console.log(this);
+    const { latitude } = position.coords;
+    const { longitude } = position.coords;
+    //   console.log(`https://www.google.com/maps/@${latitude},${longitude},15z`);
+
+    this.#map = L.map('map').setView([latitude, longitude], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(this.#map);
+
+    //! Add Marker on click
+    this.#map.on('click', this._showForm.bind(this));
+  }
+
+  _showForm(mapE){
+    debugger
+      this.#mapEvent = mapE;
         console.log('mapEvent', mapEvent);
         form.classList.remove('hidden');
         inputDistance.focus();
-      });
-    },
-    function () {
-      alert(
-        'Could not get your position. Please allow location access in your browser settings.'
-      );
-    },
-    {}
-  );
-}
-//! Form input validation
-//! Form submission
-form.addEventListener('submit', function (e) {
+  }
+
+  _toggleElevationField(){
+    debugger
+     inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
+      inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
+      inputCadence.value = inputElevation.value = '';
+  }
+
+  _newWorkout(){
+    debugger
+    console.log(this,"neww")
   e.preventDefault();
   // Clear input fields
   inputDistance.value =
@@ -53,9 +84,9 @@ form.addEventListener('submit', function (e) {
     inputCadence.value =
     inputElevation.value =
       '';
-  const { lat, lng } = mapEvent.latlng;
+  const { lat, lng } = this.#mapEvent.latlng;
   L.marker([lat, lng])
-    .addTo(map)
+    .addTo(this.#map)
     .bindPopup(
       L.popup({
         maxWidth: 250,
@@ -67,11 +98,16 @@ form.addEventListener('submit', function (e) {
     )
     .setPopupContent('New workout')
     .openPopup();
-});
+  }
 
-//! Toggle elevation/cadence input fields based on workout type
-inputType.addEventListener('change', function () {
-  inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
-  inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
-  inputCadence.value = inputElevation.value = '';
-});
+}
+
+
+const app = new App();
+
+
+
+
+
+
+
