@@ -1,0 +1,2 @@
+1. navigator.geolocation.getCurrentLocation(function(){},function(){})
+2. leaflet - third party Library
